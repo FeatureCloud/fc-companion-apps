@@ -120,7 +120,7 @@ class Experiment(CustomLogic):
         data = self.data[self.data.ASSIGNED_CLIENT == self.id].drop(columns='ASSIGNED_CLIENT')
         if not self.coordinator:
             bios.write(f"{self.OUTPUT_DIR}/config.yml", self.config_settings)
-            self.ds_conf = self.config_settings['fc_data_distributor']['dataset']
+            self.ds_conf = self.config_settings['fc_experiment']['dataset']
         if self.ds_conf['format'] == 'npy':
             features = data.features.values
             labels = data.label.values

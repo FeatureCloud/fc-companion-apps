@@ -19,7 +19,8 @@
 from .logic import AppLogic, bcolors
 import bios
 import os
-
+import pandas as pd
+import ast
 
 class CustomLogic(AppLogic):
     """ Subclassing AppLogic for overriding specific methods
@@ -56,17 +57,17 @@ class CustomLogic(AppLogic):
                        "Writing Results": None,
                        "Finishing": self.final_step
                        }
-        self.state = 'Initializing'
+        self.current_state = 'Initializing'
 
     def init_state(self):
         if self.id is not None:  # Test if setup has happened already
             if self.coordinator:
-                self.state = "Read input data and Config file"
+                self.current_state = "Read input data and Config file"
             else:
-                self.state = "Waiting for Config file and data"
+                self.current_state = "Waiting for Config file and data"
 
     def read_input(self):
-        self.state = "Broadcasting Config file and data"
+        self.current_state = "Broadcasting Config file and data"
 
     def wait_for_data(self):
         self.progress = 'wait for init parameters from server'
@@ -75,26 +76,25 @@ class CustomLogic(AppLogic):
             print(f"{bcolors.SEND_RECEIVE} Received Init Config file and data from coordinator. {bcolors.ENDC}")
             data = decoded_data[0]
             self.config_settings = {data.index[i]: ast.literal_eval(data.config.values[i]) for i in range(len(data))}
-            print(self.config_settings)
             self.data = decoded_data[1]
-            self.state = "Writing Results"
+            self.current_state = "Writing Results"
 
     def broadcast_data(self):
         config = pd.DataFrame({'config': self.config_settings})
         self.broadcast([config, self.data])
-        self.state = "Writing Results"
+        self.current_state = "Writing Results"
 
     def write_results(self):
         if self.coordinator:
             self.data_incoming.append('DONE')
-            self.state = "Finishing"
+            self.current_state = "Finishing"
         else:
             self.data_outgoing = 'DONE'
             self.status_available = True
-            self.state = None
+            self.current_state = None
 
     def final_step(self):
         self.progress = 'finishing...'
         if len(self.data_incoming) == len(self.clients):
             self.status_finished = True
-            self.state = None
+            self.current_state = None
