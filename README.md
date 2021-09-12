@@ -1,72 +1,101 @@
-# FeatureCloud Template
-### Implementing FeatureCloud Applications
+# FeatureCloud Experiment
+### Easy experiment with FeatureCloud platform
+## Description
+Using FeatureCloud Experiment app, users can experiment with different FeatureCloud applications
+just by sharing tokens. Usually, FeatureCloud participants, both coordinator and clients, need to 
+have their own private data, and globally shared config file for to conduct an experiment in a federated
+fashion with FeatureCloud platform; however, with FeatureCloud Experiment app, only the coordinator should 
+upload a centralized data and config file to start a workflow, while other clients can join by invitation
+token.
 
-FeatureCloud provide an advantageous platform which is accessible at [FeatureCloud.ai](https://featurecloud.ai/) 
+FeatureCloud Experiment provide an easy way to distribute centralized data across clients with different levels of data heterogeneity.
+FeatureCloud Experiment supports IID (Independent and Identically Distributed) and Non-IID sampling.
+Currently, FeatureCloud Experiment, supports distribution of classification data, where IID sampling of data is possible
+regardless of number of class labels. In the Data set, each sample should include an arbitrary number of features
+and a single class label from a finite discrete set of labels.
+In NonIID sampling of data, to simulate different levels of data heterogeneity across clients, An arbitrary
+number of clients and class labels are supported. Number of clients that have access to samples of a specific
+class labels can be arbitrary while Non-IID-ness of sampling lies in number of clients that have access to samples from
+each unique class label.
 
-In an OO fashion, just by extending two classes, developers can use FeatureCloud Template for
-implementing one-shot or iterative applications. This template consists of three main classes to interact with FC Controller and execute the app-level tasks. Generally, two types of clients are used in FeatureCloud Template:
+## Input
+- centralized data file: csv, txt, and npy(NumPy) file extensions are supported.  
+   
+## Output
+- client's dataset: With corresponding file extension as the input file: 
 
-- Client: Every participant in the FeatureCloud platform is considered a client who should perform local tasks and communicate some intermediary results with the coordinator. No raw data are supposed to be exchanged among clients and the coordinator.
-- Coordinator: One of the clients who can receive results of other clients, aggregate, and broadcast them.
+## Sampling
 
+- IID: Balanced, independent and identically distributed data for different clients.
+- Non-IID: Different levels data heterogeneity in terms of number of clients that have access to samples from
+specific class label.
 
-## AppLogic
-Using the `AppLogic` class, users can define different states and make a flow to move from one to another. Each state should be added to the `states` attributes, while there is no predefined order for executing states, the flow direction will be handled using `CustomLogic` class. With `current_state`, developers know the flow and determine which state they desire to move in.
-
-### Attributes
-We categorize attributes in the `AppLogic` class as follows:
-- Controlling the flow:
-  - `states`: Python dictionary that keeps names of states, as keys, and methods, as values.
-  - `current_state` Name of the current state, or the next state that a developer wants.
-  - `status_available`: Boolean attribute to signal the availability of data to the FeatureCloud Controller to share it. 
-  - `status_finished`: Boolean variable to signal the end of app's execution to the FeatureCloud Controller.
-  - `thread`:
-  - `iteration`: Number of executed iterations.
-  - `progress`: Short descriptor of internal progress of app instance for the FeatureCloud Controller.
-- General 
-  - `id`: ID of each participant, regardless of being client or coordinator.
-  - `coordinator`: Boolean flag indicating whether the running container is a coordinator or not.
-  - `clients`: Contains IDs of all participating clients.
-- Data management:
-  - For communicating data:
-    - `data_incoming`: list of data that was received.
-    - `data_outgoing`: list of data that should be shared.
-  - For I/O from the docker container:
-    - `INPUT_DIR`: path to the directory inside the docker container for reading the input files.
-    - `OUTPUT_DIR`: path to the directory inside the docker container for writing the results.
-    - `mode`: Primarily used for indicating whether input files are stored in one folder or multiple folders.
-    - `dir`: The folder containing the input files. 
-    - `splits`: A dictionary of possible splits(folder names containing the input data that are used for training) 
-  
-### Methods
-Using `lazy_initializing`, Developers can initialize some attributes in an arbitrary time. `app_flow` is the method in `AppLogic` class that contains a state machine for the client and the coordinator. 
-It calls corresponding methods to each state. These are the four methods in `AppLogic` class that facilitate communicating data between coordinator and clients.
-
-- `send_to_server`: should be called only for clients to send their data to the coordinator.
-- `get_clients_data`: Should be called only for the coordinator to wait for the clients until receiving their data.
-  For each split, corresponding clients' data will be yield back.
-- `wait_for_server`: Should be called only for clients to wait for coordinator until receiving broadcasted data.
-- `broadcast`: should be called only for the coordinator to broadcast the same date to all clients.
+### IID (Independent and Identically Distributed)
+![IID (Independent and Identically Distributed)](./data/images/IID-hist.png)
 
 
-## CustomLogic
-`CustomLogic` is an extension class of `AppLogic`, which defines all the states, determines the first state, and, more importantly, 
-implements the flow between states. Besides controlling the flow, generally, we categorize states' tasks as
-operational and/or communicational. For communicational states responsible for sharing or receiving data,
-the method will be fully implemented and assigned to the state in `CustomLogic` class. For others, only the flow 
-related part will be implemented here, and the operation happens in `CustomApp` class. All the data-related
-attributes, shared among clients, should be introduced in `CustomLogic`.  
+### Non-IID
 
-### Attributes
-- `parameters`: A dictionary that can contain any data that should be shared.
-- `workflows_states`: A dictionary that can signal any messages to the coordinator or vice versa.
+Non-IID-ness can vary based on number of clients that have access to a specific class-label.
+For Instance, here, Non-IID(1) is plotted, where samples of each class labels can be found in
+local data of one client(No more clients will get such samples). In case there be less clients
+than the level of Non-IID-ness, fewer clients may get samples of a specific class. In that regard,
+Non-IID-ness is an upper bound of label availability.
 
-### Methods
-Methods are highly diverse regarding the target application; however, almost every application
-should include initializing and finalizing state and method. 
-- `init_state`
-- `read_input`
-- `final_step`
+![Non-IID](./data/images/non-iid-hist.png)
 
-## CustomApp
-`CustomApp` is an extension of `CustomLogic` that introduces all the required attributes and methods to execute the app's task. Each state's method call its corresponding superclass method in `CustomLogic` to change the flow to the next state, which was previously implemented.
+## Workflows
+FeatureCloud Experiment loads and distributes centralized data at one of clients, and then, broadcasts clients' data to them.
+Each client stores its data locally that can be used in future experiments with FeatureCloud applications.
+- FeatureCloud Experiment should be used as a first application in a workflow; however, practitioners and researchers may employ
+    it on previously processed data in FeatureCloud platform. 
+- Post: Various chain of applications can be used after FeatureCloud Experiment app
+  (e.g. Image normalization, Cross Validation, and/or Deep Learning)
+
+## Config
+Following config information should be included in the `config.yml` to run the FeatureCloud Experiment app in a workflow:
+```
+fc_data_distributor:
+  dataset:
+    filename: "data.npy"
+    task: "classification"
+    target_value: 'same-sep'
+    sep: ","
+  sampling:
+    type: "Non-IID"
+    non_iid_ness: 1
+```
+
+##Config file options:
+- Dataset: includes name of the dataset, the application that data should be preprocessed for, and the target value file. 
+  The config files includes the name of the centralized data, which can have different extensions.
+  - Data extension: data file can be three formats of `.txt`, `.csv`, and `.npy` 
+    - `.npy`: NumPy files are supported which can be used with Deep Learning app (and its companion apps).
+      for NumPy file the target value(Label) can be placed at a separate Numpy array or at the end of the sample
+      array.
+    - `.csv`: These files can used with different separator, while the name of label column should be provided.
+      Indexes will be ignored and not being added to the result file.
+    - `.txt`: Same as `.csv` files. 
+  - Task: The task that the centralized data should be distributed for. 
+    The task name is not case-sensitive and can be:
+      - 'Classification'
+      - 'Regression'
+      - 'Clustering' 
+  - Target Value: For CSV and TXT files, conveniently, target values are in a column; however,
+      Where there are no target values, for instance for Clustering data, the provided target value 
+      option will be ignored. For NumPy files, it can be either in the same or separate file.  
+    - CSV: the target value config option is the name of column that contains the target value.
+    - TXT: Same as CSV.
+    - NumPy: for Numpy files there are two general options:
+      - Inside: the target value should be in same file as features.
+        - `same-sep`: In the same file as features, but in separate array.
+        - `same-last`: In the same file and at the end of each sample's features array.
+      - Outside:
+        - name: name of the file of target values with `.npy` extension. 
+          Both feature and target value files should have the same number of items, with same order of appearances.
+- Sampling: Includes sampling type and the level data heterogeneity.
+  - Type: Sampling type options are two and neither are case-sensitive:
+    - `IID`
+    - `Non-IID`: Currently only classification data are supported!
+  - Non-IID-ness: The level on Non-IID-ness can vary between 1 and the number of labels;
+  And it will be ignored for IID sampling.

@@ -1,5 +1,5 @@
 """
-    FeatureCloud Template
+    FeatureCloud Experiment Application
 
     Copyright 2021 Mohammad Bakhtiari. All Rights Reserved.
 
@@ -27,45 +27,62 @@ class CustomLogic(AppLogic):
 
     Attributes
     ----------
-    parameters: dict
-    workflows_states: dict
+    config_settings: dict
+    data: dict
 
     Methods
     -------
     init_state()
     read_input()
+    wait_for_data()
+    broadcast_data()
+    write_results(m)
     final_step()
-    write_results():
+
     """
 
     def __init__(self):
         super(CustomLogic, self).__init__()
 
         # Shared parameters and data
-        self.parameters = {}
-        self.workflows_states = {}
+        self.config_settings = {}
+        self.data = {}
 
         # Define States
         self.states = {"Initializing": self.init_state,
+                       "Read input data and Config file": self.read_input,
+                       "Waiting for Config file and data": self.wait_for_data,
+                       "Broadcasting Config file and data": None,
                        "Writing Results": None,
                        "Finishing": self.final_step
                        }
         self.state = 'Initializing'
 
     def init_state(self):
-        raise NotImplementedError
         if self.id is not None:  # Test if setup has happened already
             if self.coordinator:
-                self.current_state = "Something"
+                self.state = "Read input data and Config file"
             else:
-                self.current_state = "S.t. else"
+                self.state = "Waiting for Config file and data"
 
     def read_input(self):
-        raise NotImplementedError
-        if self.coordinator:
-            self.current_state = "Something"
-        else:
-            self.current_state = "S.t. else"
+        self.state = "Broadcasting Config file and data"
+
+    def wait_for_data(self):
+        self.progress = 'wait for init parameters from server'
+        decoded_data = self.wait_for_server()
+        if decoded_data is not None:
+            print(f"{bcolors.SEND_RECEIVE} Received Init Config file and data from coordinator. {bcolors.ENDC}")
+            data = decoded_data[0]
+            self.config_settings = {data.index[i]: ast.literal_eval(data.config.values[i]) for i in range(len(data))}
+            print(self.config_settings)
+            self.data = decoded_data[1]
+            self.state = "Writing Results"
+
+    def broadcast_data(self):
+        config = pd.DataFrame({'config': self.config_settings})
+        self.broadcast([config, self.data])
+        self.state = "Writing Results"
 
     def write_results(self):
         if self.coordinator:
