@@ -1,4 +1,4 @@
-fc_data_distributor:
+fc_experiment:
   dataset:
     filename: "data.npy"
     task: 'classification'

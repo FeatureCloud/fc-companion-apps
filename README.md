@@ -38,7 +38,7 @@ specific class label.
 
 Non-IID-ness can vary based on number of clients that have access to a specific class-label.
 For Instance, here, Non-IID(1) is plotted, where samples of each class labels can be found in
-local data of one client(No more clients will get such samples). In case there be less clients
+local data of one client(No more clients will get such samples). In case there be fewer clients
 than the level of Non-IID-ness, fewer clients may get samples of a specific class. In that regard,
 Non-IID-ness is an upper bound of label availability.
 
@@ -55,7 +55,7 @@ Each client stores its data locally that can be used in future experiments with 
 ## Config
 Following config information should be included in the `config.yml` to run the FeatureCloud Experiment app in a workflow:
 ```
-fc_data_distributor:
+fc_experiment:
   dataset:
     filename: "data.npy"
     task: "classification"
@@ -73,7 +73,7 @@ fc_data_distributor:
     - `.npy`: NumPy files are supported which can be used with Deep Learning app (and its companion apps).
       for NumPy file the target value(Label) can be placed at a separate Numpy array or at the end of the sample
       array.
-    - `.csv`: These files can used with different separator, while the name of label column should be provided.
+    - `.csv`: These files can be used with different separator, while the name of label column should be provided.
       Indexes will be ignored and not being added to the result file.
     - `.txt`: Same as `.csv` files. 
   - Task: The task that the centralized data should be distributed for. 

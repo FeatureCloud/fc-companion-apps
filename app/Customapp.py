@@ -68,13 +68,13 @@ class Experiment(CustomLogic):
 
         """
         self.config_settings = bios.read(config_file)
-        config = self.config_settings['fc_data_distributor']
+        config = self.config_settings['fc_experiment']
         self.ds_conf = config['dataset']
         self.ds_conf['task'] = self.ds_conf['task'].lower()
         self.ds_conf['target_value'] = self.ds_conf['target_value'].lower()
         self.ds_conf['format'] = self.ds_conf['filename'].strip().split(".")[-1].lower()
         if not self.ds_conf['format'] in ['txt', 'npy', 'csv']:
-            raise NotImplementedError(f"Unsupported {self.ds_conf['fromat']} file extension!")
+            raise NotImplementedError(f"Unsupported {self.ds_conf['format']} file extension!")
         self.sampling_conf = config['sampling']
         self.sampling_conf['type'] = self.sampling_conf['type'].lower()
         if not self.sampling_conf['type'] in ['non-iid', 'noniid', 'non_iid', 'iid']:
@@ -98,52 +98,49 @@ class Experiment(CustomLogic):
 
         super(Experiment, self).read_input()
 
+    def broadcast_data(self):
+        self.progress = "Sample the dataset and broadcast"
+        self.data = self.sample_dataset()
+        super(Experiment, self).broadcast_data()
 
-def broadcast_data(self):
-    self.progress = "Sample the dataset and broadcast"
-    self.data = self.sample_dataset()
-    super(Experiment, self).broadcast_data()
-
-
-def sample_dataset(self):
-    self.df['ASSIGNED_CLIENT'] = None
-    if self.ds_conf['task'] == 'classification':
-        if self.sampling_conf['type'] == 'iid':
-            clients_data = supervised_iid_sampling(self.df, self.clients)
+    def sample_dataset(self):
+        self.df['ASSIGNED_CLIENT'] = None
+        if self.ds_conf['task'] == 'classification':
+            if self.sampling_conf['type'] == 'iid':
+                clients_data = supervised_iid_sampling(self.df, self.clients)
+            else:
+                clients_data = noniid_sampling(self.df, self.clients, self.sampling_conf['non_iid_ness'])
         else:
-            clients_data = noniid_sampling(self.df, self.clients, self.sampling_conf['non_iid_ness'])
-    else:
-        clients_data = unsupervised_iid_sampling()
-    return clients_data
+            clients_data = unsupervised_iid_sampling()
+        return clients_data
 
-
-def write_results(self):
-    self.progress = "write results"
-    plot_clients_data(self.data, self.OUTPUT_DIR)
-    data = self.data[self.data.ASSIGNED_CLIENT == self.id].drop(columns='ASSIGNED_CLIENT')
-    if not self.coordinator:
-        bios.write(f"{self.OUTPUT_DIR}/config.yml", self.config_settings)
-        self.ds_conf = self.config_settings['fc_data_distributor']['dataset']
-    if self.ds_conf['format'] == 'npy':
-        features = data.features.values
-        labels = data.label.values
-        if self.ds_conf['target_value'] == "same-sep":
-            temp = np.array([features, labels])
-            np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", temp)
-        elif self.ds_conf['target_value'] == "same-last":
-            samples = []
-            for i in range(features.shape[0]):
-                samples.append(np.append(features[i], labels[i]))
-            np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", samples)
-        elif self.ds_conf['targer_value'].strip().split(".")[1].lower() == 'npy':
-            np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", data.features.values)
-            np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['target_value']}", data.label.values)
+    def write_results(self):
+        self.progress = "write results"
+        plot_clients_data(self.data, self.OUTPUT_DIR)
+        data = self.data[self.data.ASSIGNED_CLIENT == self.id].drop(columns='ASSIGNED_CLIENT')
+        if not self.coordinator:
+            bios.write(f"{self.OUTPUT_DIR}/config.yml", self.config_settings)
+            self.ds_conf = self.config_settings['fc_data_distributor']['dataset']
+        if self.ds_conf['format'] == 'npy':
+            features = data.features.values
+            labels = data.label.values
+            if self.ds_conf['target_value'] == "same-sep":
+                temp = np.array([features, labels])
+                np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", temp)
+            elif self.ds_conf['target_value'] == "same-last":
+                samples = []
+                for i in range(features.shape[0]):
+                    samples.append(np.append(features[i], labels[i]))
+                np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", samples)
+            elif self.ds_conf['target_value'].strip().split(".")[1].lower() == 'npy':
+                np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", data.features.values)
+                np.save(f"{self.OUTPUT_DIR}/{self.ds_conf['target_value']}", data.label.values)
+            else:
+                raise ValueError(f"Oops! {self.ds_conf['target_value']} is not a supported value for target_value.")
         else:
-            raise ValueError(f"Oops! {self.ds_conf['target_value']} is not a supported value for target_value.")
-    else:
-        data.rename(columns={'label': self.ds_conf['target_value']}, inplace=True)
-        data.to_csv(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", sep=self.ds_conf['sep'], index=False)
-    super(Experiment, self).write_results()
+            data.rename(columns={'label': self.ds_conf['target_value']}, inplace=True)
+            data.to_csv(f"{self.OUTPUT_DIR}/{self.ds_conf['filename']}", sep=self.ds_conf['sep'], index=False)
+        super(Experiment, self).write_results()
 
 
 logic = Experiment()
