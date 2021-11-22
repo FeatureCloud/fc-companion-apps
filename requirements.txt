@@ -1,8 +1,0 @@
-bottle
-numpy
-jsonpickle
-joblib
-bios
-pandas
-matplotlib
-seaborn

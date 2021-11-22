@@ -1,9 +1,0 @@
-fc_experiment:
-  dataset:
-    filename: "data.npy"
-    task: 'classification'
-    target_value: 'label'
-    sep: ','
-  sampling:
-    type: 'Non-IID'
-    non_iid_ness: 1
