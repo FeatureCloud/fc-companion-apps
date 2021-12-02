@@ -96,8 +96,10 @@ class LocalStats(ConfigState.State):
 
             self.app.internal['x_test'].append(x_test)
             self.app.internal['y_test'].append(y_test)
-            local_stats.append([[n_train_samples, mean_train.tolist(), std_train.tolist()], [n_test_samples, mean_test.tolist(), std_test.tolist()]])
+            local_stats.append([[n_train_samples, mean_train.tolist(), std_train.tolist()],
+                                [n_test_samples, mean_test.tolist(), std_test.tolist()]])
         return local_stats
+
 
 @app_state(name="GlobalStats", role=Role.COORDINATOR)
 class GlobalStats(AppState):
@@ -111,7 +113,7 @@ class GlobalStats(AppState):
         global_stats = []
         if self.app.internal['method'] == "variance":
             for train_split, test_split in aggregated_stats:
-                n_train_samples, train_mean, train_std  = train_split
+                n_train_samples, train_mean, train_std = train_split
                 n_test_samples, test_mean, test_std = test_split
                 if n_train_samples != 0:
                     train_mean = np.array(train_mean) / n_train_samples
@@ -155,10 +157,8 @@ class WriteResults(AppState):
 
     def local_normalization(self, x_train, x_test, global_stats):
         if self.app.internal['method'] == "variance":
-            # normalized_x_train = np.subtract(x_train, global_stats["train_mean"]) / global_stats["train_std"]
             normalized_x_train = np.subtract(x_train, global_stats[0]) / global_stats[1]
             if np.size(x_test) != 0:
-                # normalized_x_test = np.subtract(x_test, global_stats["test_mean"]) / global_stats["test_std"]
                 normalized_x_test = np.subtract(x_test, global_stats[2]) / global_stats[3]
             else:
                 normalized_x_test = np.array([])

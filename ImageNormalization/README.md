@@ -7,7 +7,7 @@ This app supports image datasets with .npy format(numpy files).
 ## Input
 - train.npy containing the local training data  
 - test.npy containing the local test data
-Each of `train.npy` and `test.npy` include to columns with same number of items [images, labels]
+`train.npy` and `test.npy` should include same number of samples and the structure should be same as [CrossValidation](../CrossValidation/README.md#input) app.
 ## Output
 - train.npy: Normalized training data 
 - test.npy: Normalized test data
