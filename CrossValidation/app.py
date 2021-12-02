@@ -18,6 +18,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, KFold
 import os
+from utils import save_numpy, load_numpy, sep_feat_from_label
 
 name = 'fc_cross_validation'
 
@@ -81,21 +82,23 @@ class LoadAndSplit(ConfigState.State):
         return df
 
     def load_numpy_files(self, file_name):
-        ds = np.load(file_name, allow_pickle=True)
-        if self.app.internal['format'] == "npz":
-            ds = ds['arr_0']
+        ds = load_numpy(file_name)
         target_value = self.config['local_dataset'].get('target_value', False)
         if target_value:
-            if target_value == 'same-sep':
-                return pd.DataFrame({"features": [s for s in ds[0]], "label": ds[1]})
-            elif target_value == 'same-last':
-                return pd.DataFrame({"features": [s[:-1] for s in ds], "label": [s[-1] for s in ds]})
-            elif target_value.strip().split(".")[1].lower() in ['npy', 'npz']:
-                labels = np.load(f"{self.input_dir}/{self.config['local_dataset']['target_value']}",
-                                 allow_pickle=True)
-                return pd.DataFrame({"features": [s for s in ds], "label": labels})
-            self.app.log(f"{target_value} is not supported", LogLevel.ERROR)
-            self.update(state=op_state.ERROR)
+
+            # if target_value == 'same-sep':
+            #     return pd.DataFrame({"features": [s for s in ds[0]], "label": ds[1]})
+            # elif target_value == 'same-last':
+            #     return pd.DataFrame({"features": [s[:-1] for s in ds], "label": [s[-1] for s in ds]})
+            # elif target_value.strip().split(".")[1].lower() in ['npy', 'npz']:
+            #     labels = np.load(f"{self.input_dir}/{self.config['local_dataset']['target_value']}",
+            #                      allow_pickle=True)
+            #     return pd.DataFrame({"features": [s for s in ds], "label": labels})
+            df = sep_feat_from_label(ds, target_value)
+            if df is None:
+                self.app.log(f"{target_value} is not supported", LogLevel.ERROR)
+                self.update(state=op_state.ERROR)
+            return df
         else:
             self.app.log("For NumPy files, the format of target value should be mentioned through `target_value` "
                          "key in config file", LogLevel.ERROR)
@@ -152,17 +155,3 @@ class WriteResults(AppState):
         return 'terminal'
 
 
-def save_numpy(file_name, features, labels, target):
-    if target == "same-sep":
-        np.save(file_name, np.array([features, labels]))
-    elif target == "same-last":
-        samples = [np.append(features[i], labels[i]) for i in range(features.shape[0])]
-        np.save(file_name, samples)
-    elif target.strip().split(".")[1].lower() == 'npy':
-        np.save(file_name, features)
-        np.save(target, labels)
-    elif target.strip().split(".")[1].lower() in 'npz':
-        np.savez_compressed(file_name, features)
-        np.savez_compressed(target, labels)
-    else:
-        return ValueError
