@@ -15,7 +15,6 @@ from FeatureCloud.CustomStates import ConfigState
 from FeatureCloud.engine.app import app_state, Role, AppState, LogLevel
 from FeatureCloud.engine.app import State as op_state
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import StratifiedKFold, KFold
 import os
 from utils import save_numpy, load_numpy, sep_feat_from_label
@@ -85,15 +84,6 @@ class LoadAndSplit(ConfigState.State):
         ds = load_numpy(file_name)
         target_value = self.config['local_dataset'].get('target_value', False)
         if target_value:
-
-            # if target_value == 'same-sep':
-            #     return pd.DataFrame({"features": [s for s in ds[0]], "label": ds[1]})
-            # elif target_value == 'same-last':
-            #     return pd.DataFrame({"features": [s[:-1] for s in ds], "label": [s[-1] for s in ds]})
-            # elif target_value.strip().split(".")[1].lower() in ['npy', 'npz']:
-            #     labels = np.load(f"{self.input_dir}/{self.config['local_dataset']['target_value']}",
-            #                      allow_pickle=True)
-            #     return pd.DataFrame({"features": [s for s in ds], "label": labels})
             df = sep_feat_from_label(ds, target_value)
             if df is None:
                 self.app.log(f"{target_value} is not supported", LogLevel.ERROR)
