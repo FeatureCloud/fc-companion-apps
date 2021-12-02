@@ -1,0 +1,13 @@
+fc_image_normalization:
+  local_dataset:
+    train: train.npy
+    test: test.npy
+    target_value: same-sep
+  method: variance
+  logic:
+    mode: file
+    dir: .
+  use_smpc: false
+  result:
+    train: train.npy
+    test: test.npy
