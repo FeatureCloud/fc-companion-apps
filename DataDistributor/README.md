@@ -51,7 +51,7 @@ Each client stores its data locally that can be used in future experiments with 
 - Post: Various chain of applications can be used after DataDistributor app
   (e.g. Image normalization, Cross Validation, and/or Deep Learning)
 
-![Diagram](../images/DataDistributor.png)
+![Diagram](../data/images/DataDistributor.png)
 
 ### Config
 Following config information should be included in the `config.yml` to run the DataDistributor app in a workflow:
