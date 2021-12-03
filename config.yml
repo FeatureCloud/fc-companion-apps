@@ -1,0 +1,68 @@
+fc_cross_validation:
+  local_dataset:
+    data: data.csv
+    target_value: '10'
+    sep: ','
+  n_splits: 10
+  shuffle: true
+  stratify: false
+  random_state: null
+  split_dir: data
+  result:
+    train: train.csv
+    test: test.csv
+
+fc_mean:
+  local_dataset:
+    data: data.csv
+  logic:
+    mode: file
+    dir: .
+  axis: 0
+  use_smpc: true
+  result:
+    mean: mean.txt
+
+fc_data_distributor:
+  local_dataset:
+    data: data.npz
+    task: classification
+    target_value: same-sep
+    sep: ','
+  sampling:
+    type: Non-IID
+    non_iid_ness: 1
+  result:
+    data: data.npz
+    
+fc_image_normalization:
+  local_dataset:
+    train: data.npz
+    test: None
+    target_value: same-sep
+  method: variance
+  logic:
+    mode: file
+    dir: .
+  use_smpc: false
+  result:
+    train: train.npz
+    test: None
+
+fc_image_loader:
+  local_dataset:
+    ds_dir: ds
+    image_format: jpeg
+    target_value: dir
+    sep: ','
+  image_resize:
+    width: 28
+    height: 28
+  image_crop:
+    x_coordinate: 0
+    y_coordinate: 0
+    width: 28
+    height: 28
+  result:
+    data: dataset.npy
+
