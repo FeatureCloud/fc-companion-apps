@@ -43,7 +43,7 @@ images in a Numpy file. After loading images, users can employ [Image Normalizat
 image channels. Overall, there can be different workflows to use companion apps.
 For instance :
 
- ![Workflow](/data/images/Workflow.png)
+![Workflow](/data/images/Workflow.png)
 
 Two clients, coordinator and participant, collaborate in this federated worflow that includes six apps; 
 Any of possible classification and evaluation apps in FeatureCloud ![AI-Store](https://featurecloud.ai/ai-store) 
