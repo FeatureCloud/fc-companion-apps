@@ -36,9 +36,7 @@ images in a Numpy file. After loading images, users can employ [Image Normalizat
 image channels. Overall, there can be different workflows to use companion apps.
 For instance :
 
- ![Workflow](https://www.yworks.com/yed-live/?file=https://gist.githubusercontent.com/Mohammad-Bakhtiari/2233dc67e95be734949f6730c6f3ba90/raw/142c9b20e1ce776377475cd079d92c88a90b1cad/Workflow) 
-
-
+ ![Workflow](/data/images/Workflow.png)
 
 ## Exemplary app implantation in FeatureCloud 
 For the purpose of exemplifying and providing FeatureCloud users with apps
