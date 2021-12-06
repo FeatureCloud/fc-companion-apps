@@ -1,13 +1,13 @@
 # FeatureCloud Cross-Validation app
-The Cross Validation app in FeatureCloud library creates local splits for a k-fold cross validation. It can be used as one of the
-first apps in FC workflow and can be followed by different Machine Learning or Data analysis apps.
+The Cross-Validation app in the FeatureCloud library creates k-fold local splits, which can be used as one of the
+first apps in FC workflow followed by different Machine Learning or Data analysis apps.
 
 ## Input
 Similar to Data Distributor app, Cross-Validation (CV) accepts Numpy files (`.npy`, `.npz`) files alongside `.csv` and `.txt` files.
-For `.csv` and `.txt` files, clients should identify the delimiter character using `sep` key in the config file. For numpy file 
+For `.csv` and `.txt` files, clients should identify the delimiter character using the `sep` key in the config file. For NumPy file 
 they have to choose from three possible options for `target_value`:
-- `same-sep`: target value in the same file but separate array, i.e., first array includes samples and the second one contains target values.
-  evidently, both arrays should have same length and corresponding features and labels for each sample.
+- `same-sep`: target value in the same file but separate array, i.e., the first array includes samples and the second one contains target values.
+  Evidently, both arrays should have the same length and corresponding features and labels for each sample.
 ```angular2html
 f1, f2 = [1,2,3,4,5], [10,20,30,40,50]
 l1, l2 = 0, 1
@@ -24,9 +24,9 @@ label = 0
 sample = [features, label]
 dataset = [sample, sample]
 ``` 
-- name of a separate numpy file (`.npy`,`.npz`) that contains target values.
+- Name a separate NumPy file (`.npy` and `.npz`) that contains target values.
 ## Output
-Output directory includes splits of test and train data that will be in the same format as input file.
+The output directory includes splits of test and train data in the same format as the input file.
 
 ## Workflows
 Can be combined with the following apps:
@@ -51,8 +51,8 @@ fc_cross_validation:
     train: train.npy
     test: test.npy
 ```
-- `target_value` indicates where labels can be found inside the input data or can be the name of different file, in the 
-same directory as input data file, which contains labels. Beware that `target_value` should be string, even if it's number!
+- `target_value` indicates where labels can be found inside the input data or can be the name of a different file in the 
+same directory as the input data file, which contains labels. Beware that `target_value` should be a string, even if it's a number!
 e.g., `target_value: '10'` 
 - `n_splits`: number of splits to be created using CV.
 
