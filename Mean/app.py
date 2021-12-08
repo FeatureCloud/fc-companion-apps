@@ -12,7 +12,7 @@
     limitations under the License.
 """
 from FeatureCloud.engine.app import app_state, AppState, Role, SMPCOperation
-from FeatureCloud.Utils.utils import log_data, log_send_data, JsonSerializer
+from utils import log_data, log_send_data, JsonSerializer
 import pandas as pd
 import numpy as np
 from ..FeatureCloudCustomStates import ConfigState
