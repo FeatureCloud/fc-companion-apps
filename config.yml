@@ -1,4 +1,4 @@
-fc_cross_validation:
+cross_validation:
   local_dataset:
     data: data.csv
     target_value: '10'
@@ -12,7 +12,7 @@ fc_cross_validation:
     train: train.csv
     test: test.csv
 
-fc_mean:
+mean:
   local_dataset:
     data: data.csv
   logic:
@@ -23,7 +23,7 @@ fc_mean:
   result:
     mean: mean.txt
 
-fc_data_distributor:
+data_distributor:
   local_dataset:
     data: data.npz
     task: classification
@@ -35,7 +35,7 @@ fc_data_distributor:
   result:
     data: data.npz
     
-fc_image_normalization:
+image_normalization:
   local_dataset:
     train: data.npz
     test: None
@@ -49,7 +49,7 @@ fc_image_normalization:
     train: train.npz
     test: None
 
-fc_image_loader:
+image_loader:
   local_dataset:
     ds_dir: ds
     image_format: jpeg

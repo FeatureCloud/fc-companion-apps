@@ -1,4 +1,4 @@
-fc_data_distributor:
+data_distributor:
   local_dataset:
     data: data.csv
     task: classification

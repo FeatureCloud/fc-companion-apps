@@ -1,4 +1,4 @@
-fc_cross_validation:
+cross_validation:
   local_dataset:
     data: data.csv
     target_value: '10'

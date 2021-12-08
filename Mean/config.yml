@@ -1,4 +1,4 @@
-fc_mean:
+mean:
   local_dataset:
     data: data.csv
   logic:

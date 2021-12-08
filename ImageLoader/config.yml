@@ -1,4 +1,4 @@
-fc_image_loader:
+image_loader:
   local_dataset:
     ds_dir: ds
     image_format: jpeg
