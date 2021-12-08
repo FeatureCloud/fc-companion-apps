@@ -11,7 +11,6 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-from FeatureCloud.CustomStates import ConfigState
 from FeatureCloud.engine.app import app_state, AppState, Role, LogLevel
 from FeatureCloud.engine.app import State as op_state
 import pandas as pd
@@ -19,34 +18,9 @@ import numpy as np
 import os
 from PIL import Image
 import glob
+from ..FeatureCloudCustomStates import ConfigState
 
-name = 'fc_image_loader'
-
-default_config = {
-    name: {
-        'local_dataset': {
-            'ds_dir': 'ds',
-            'image_format': 'jpeg',
-            'target_value': 'dir',
-            'sep': ','
-        },
-        'image_resize': {
-            'width': 28,
-            'height': 28
-        },
-        'image_crop': {
-            'x_coordinate': 0,
-            'y_coordinate': 0,
-            'width': 28,
-            'height': 28
-        },
-        'result': {
-            'data': 'dataset.npy'
-        }
-    }
-}
-
-requirements = ['pandas', 'Pillow']
+name = 'image_loader'
 
 
 @app_state(name='initial', role=Role.BOTH, app_name=name)

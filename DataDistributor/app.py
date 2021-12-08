@@ -12,38 +12,17 @@
     limitations under the License.
 """
 
-from FeatureCloud.CustomStates import ConfigState
 from FeatureCloud.engine.app import app_state, AppState, Role, LogLevel
 from FeatureCloud.engine.app import State as op_state
 from FeatureCloud.Utils.utils import log_send_data, log_data
 import pandas as pd
 import bios
 from utils import save_numpy, load_numpy, sep_feat_from_label
+from ..FeatureCloudCustomStates import ConfigState
 
 from .utils import log_dataframe, plot_clients_data, noniid_sampling, unsupervised_iid_sampling, supervised_iid_sampling
 
-name = 'fc_data_distributor'
-
-default_config = {
-    name: {
-        'local_dataset': {
-            'data': 'data.csv',
-            'task': 'classification',
-            'target_value': '10',  # should be str
-            'sep': ','
-        },
-        'sampling': {
-            'type': 'Non-IID',
-            'non_iid_ness': 1
-        },
-        'result': {
-            'data': 'data.csv'
-        }
-    }
-}
-
-requirements = ['pandas', 'matplotlib', 'seaborn']
-
+name = 'data_distributor'
 
 @app_state(name='initial', role=Role.BOTH, app_name=name)
 class DistributeData(ConfigState.State):

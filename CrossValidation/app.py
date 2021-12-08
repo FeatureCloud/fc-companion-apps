@@ -11,7 +11,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-from FeatureCloud.CustomStates import ConfigState
+from ..FeatureCloudCustomStates import ConfigState
 from FeatureCloud.engine.app import app_state, Role, AppState, LogLevel
 from FeatureCloud.engine.app import State as op_state
 import pandas as pd
@@ -19,28 +19,7 @@ from sklearn.model_selection import StratifiedKFold, KFold
 import os
 from utils import save_numpy, load_numpy, sep_feat_from_label
 
-name = 'fc_cross_validation'
-
-default_config = {
-    name: {
-        'local_dataset': {
-            'data': 'data.csv',
-            'target_value': '10',  # should be str
-            'sep': ','
-        },
-        'n_splits': 10,
-        'shuffle': True,
-        'stratify': False,
-        'random_state': None,
-        'split_dir': 'data',
-        'result': {
-            'train': 'train.csv',
-            'test': 'test.csv'
-        }
-    }
-}
-
-requirements = ['pandas', 'sklearn']
+name = 'cross_validation'
 
 
 @app_state(name='initial', role=Role.BOTH, app_name=name)
@@ -143,5 +122,3 @@ class WriteResults(AppState):
             self.update(progress=progress)
         self.update(progress=1.0)
         return 'terminal'
-
-

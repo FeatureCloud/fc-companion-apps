@@ -11,33 +11,15 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-from FeatureCloud.CustomStates import ConfigState
 from FeatureCloud.engine.app import app_state, AppState, Role, SMPCOperation
 from FeatureCloud.Utils.utils import log_data, log_send_data, JsonSerializer
 import pandas as pd
 import numpy as np
+from ..FeatureCloudCustomStates import ConfigState
 
 js_serializer = JsonSerializer()
 
-name = 'fc_mean'
-
-default_config = {
-    name: {
-        'local_dataset': {
-            'data': 'data.csv'
-        },
-        'logic': {
-            'mode': 'file',
-            'dir': '.',
-        },
-        'axis': 0,
-        'use_smpc': False,
-        'result': {
-            'mean': 'mean.txt'}
-    }
-}
-
-requirements = ['pandas']
+name = 'mean'
 
 
 @app_state(name='initial', role=Role.BOTH, app_name=name)

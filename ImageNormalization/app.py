@@ -13,36 +13,14 @@
 """
 import copy
 import os.path
-from FeatureCloud.CustomStates import ConfigState
 from FeatureCloud.engine.app import app_state, AppState, Role, LogLevel, SMPCOperation
 from FeatureCloud.engine.app import State as op_state
 import numpy as np
 from utils import save_numpy
 from .utils import read_file
+from ..FeatureCloudCustomStates import ConfigState
 
-name = 'fc_image_normalization'
-
-default_config = {
-    name: {
-        'local_dataset': {
-            'train': 'train.npy',
-            'test': 'test.npy',
-            'target_value': 'same-sep'
-        },
-        'method': 'variance',
-        'logic': {
-            'mode': 'file',
-            'dir': '.'
-        },
-        'use_smpc': False,
-        'result': {
-            'train': 'train.npy',
-            'test': 'test.npy'
-        }
-    }
-}
-
-requirements = ['matplotlib', 'seaborn']
+name = 'image_normalization'
 
 
 @app_state(name='initial', role=Role.BOTH, app_name=name)
