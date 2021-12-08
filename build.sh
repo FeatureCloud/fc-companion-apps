@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build . --tag featureclud.ai/fc-experiment
+docker build . --tag featureclud.ai/companion_apps
