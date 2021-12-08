@@ -10,4 +10,4 @@ sklearn
 matplotlib
 seaborn
 Pillow
-./FeatureCloud-0.1-py3-none-any.whl
+FeatureCloud

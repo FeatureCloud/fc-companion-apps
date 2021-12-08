@@ -7,3 +7,4 @@ pydot
 pyyaml
 matplotlib
 seaborn
+FeatureCloud
