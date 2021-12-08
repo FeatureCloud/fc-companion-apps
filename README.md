@@ -56,3 +56,9 @@ of FC platform.
 
 ### Local Computation and operations without Communication
 [Cross Validation](/CrossValidation/README.md) and [Image Loader](/ImageLoader/README.md) apps.
+
+## ConfigSate
+[`ConfigSate`](/FeatureCloudCustomStates/README.md) can be optionally used as the first state, `initial` state,
+in the app which reads the config file and interprets it to provide necessary information
+for following states to facilitate data I/O, splits, and serialization. 
+
