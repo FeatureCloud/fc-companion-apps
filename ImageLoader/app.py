@@ -41,23 +41,31 @@ class ImgLoader(ConfigState.State):
         return 'WriteResults'
 
     def load_images(self, ds_dir):
+        image_formats = self.config['local_dataset']['image_format']
+        if not isinstance(list, image_formats):
+            self.log(f"image formats should listed; even there is only one item!\n"
+                     f"e.g., [jpeg]", LogLevel.ERROR)
+            self.update(state=op_state.ERROR)
+        self.log(f"Image formats: {image_formats}")
         self.log(f"Reading {ds_dir}", LogLevel.DEBUG)
         self.update(progress=0.1)
         samples = []
         labels = []
-        if '.txt' in self.config['local_dataset']['target_value'] or '.csv' in self.config['local_dataset']['target_value']:
+        target = self.config['local_dataset']['target_value']
+        if '.txt' in target or '.csv' in target:
             folders = []
             for folder in glob.glob(f'{ds_dir}/*/'):
                 folders.append(folder.strip().split('/')[-2])
             for folder in folders:
-                labels_file = f"{ds_dir}/folder/{self.config['local_dataset']['target_value']}"
+                self.log(f"Loading {folder}...")
+                labels_file = f"{ds_dir}/folder/{target}"
                 if os.path.exists(labels_file):
                     df = pd.read_csv(labels_file, sep=self.config['local_dataset']['sep'])
                 else:
                     self.update(state=op_state.ERROR)
-                    self.log(f"No {self.config['local_dataset']['target_value']} file found in {labels_file}!",
+                    self.log(f"No {target} file found in {labels_file}!",
                                  LogLevel.FATAL)
-                for format in self.config['local_dataset']['image_format']:
+                for format in image_formats:
                     for filename in glob.glob(f'{ds_dir}/{folder}/*.{format}'):  # assuming gif
                         samples.append(Image.open(filename))
                         labels.append(df[df.name == filename.strip().split('/')[-1]].label.values.item())
@@ -67,7 +75,8 @@ class ImgLoader(ConfigState.State):
         for folder in glob.glob(f'{ds_dir}/*/'):
             labels_folders.append(folder.strip().split('/')[-2])
         for folder in labels_folders:
-            for format in self.config['local_dataset']['image_format']:
+            self.log(f"Loading {folder}...")
+            for format in image_formats:
                 for filename in glob.glob(f'{ds_dir}/{folder}/*.{format}'):  # assuming gif
                     samples.append(Image.open(filename))
                     labels.append(folder)

@@ -52,7 +52,7 @@ image_normalization:
 image_loader:
   local_dataset:
     ds_dir: ds
-    image_format: jpeg
+    image_format: [jpeg]
     target_value: dir
     sep: ','
   image_resize:
