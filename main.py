@@ -1,4 +1,4 @@
-from FeatureCloud.Utils.build import run
+from utils import run
 from Mean import app # noqa # pylint: disable=unused-import
 
 if __name__ == '__main__':
