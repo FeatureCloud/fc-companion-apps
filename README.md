@@ -30,8 +30,8 @@ All the apps support NumPy files, both compressed and uncompressed ones.
 
 Once users begin to experiment with the FeatureCloud platform, they may want to use dummy data at first to familiarize themselves with 
 the platform and libraries. One option would be to employ [Data Distributor](https://github.com/FeatureCloud/fc-data-distributor) as the first app
-in a workflow to distribute centralized data among clients. Once the data and config files are ready in clients, one can use     
-[Cross Validation](https://github.com/FeatureCloud/fc-cross-validation/tree/Numpy) app to split the local dataset into multiple splits where each split includes a train and test set.
+in a workflow to distribute centralized data among clients. Once the data and config files are ready in clients, 
+one can use [Cross Validation](https://github.com/FeatureCloud/fc-cross-validation/tree/Numpy) app to split the local dataset into multiple splits where each split includes a train and test set.
 Cross-validation is a common practice to make sure that the results of the learning app are not accidental. Some applications use images 
 as input to be stored in different datasets. In such cases, the [Image Loader](https://github.com/FeatureCloud/fc-image-loader) app can load and store all the
 images in a Numpy file. After loading images, users can employ [Image Normalization](https://github.com/FeatureCloud/fc-image-normalization) app to normalize local datasets across 
