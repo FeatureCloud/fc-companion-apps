@@ -11,7 +11,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-from ..FeatureCloudCustomStates import ConfigState
+from CustomStates import ConfigState
 from FeatureCloud.engine.app import app_state, Role, AppState, LogLevel
 from FeatureCloud.engine.app import State as op_state
 import pandas as pd
@@ -32,30 +32,32 @@ class LoadAndSplit(ConfigState.State):
         self.lazy_init()
         self.read_config()
         self.finalize_config()
-        self.app.internal['format'] = self.config['local_dataset']['data'].lower().split(".")[-1].strip()
-        self.app.internal['sep'] = self.config['local_dataset']['sep'].strip()
-        self.app.internal['target'] = self.config['local_dataset']['target_value'].strip()
+        self.store('format', self.config['local_dataset']['data'].lower().split(".")[-1].strip())
+        self.store('sep', self.config['local_dataset']['sep'].strip())
+        self.store('target', self.config['local_dataset']['target_value'].strip())
         df = self.read_data()
         # Creat placeholders for output files
         output_folder = f"{self.output_dir}/{self.config['split_dir']}"
-        self.app.internal['output_files'] = {'train': [], 'test': []}
+        train, test = [], []
         for i in range(self.config['n_splits']):
             os.makedirs(f"{output_folder}/{i}")
-            self.app.internal['output_files']['train'].append(f"{output_folder}/{i}/{self.config['result']['train']}")
-            self.app.internal['output_files']['test'].append(f"{output_folder}/{i}/{self.config['result']['test']}")
+            train.append(f"{output_folder}/{i}/{self.config['result']['train']}")
+            test.append(f"{output_folder}/{i}/{self.config['result']['test']}")
+        self.store('output_files', {'train': train, 'test': test})
         self.update(progress=0.1)
-        self.app.internal['splits'] = self.create_splits(df)
+        self.store('splits', self.create_splits(df))
         self.update(progress=0.5)
         return 'WriteResults'
 
     def read_data(self):
-        file_name = self.app.internal['input_files']['data'][0]
-        if self.app.internal['format'] in ["npy", "npz"]:
+        file_name = self.load('input_files')['data'][0]
+        format = self.load('format')
+        if format in ["npy", "npz"]:
             df = self.load_numpy_files(file_name)
-        elif self.app.internal['format'] in ["csv", "txt"]:
+        elif format in ["csv", "txt"]:
             df = pd.read_csv(file_name, sep=self.config['local_dataset']['sep'])
         else:
-            self.app.log(f"{self.app.internal['format']} file types are not supported", LogLevel.ERROR)
+            self.app.log(f"{format} file types are not supported", LogLevel.ERROR)
             self.update(state=op_state.ERROR)
         return df
 
@@ -69,14 +71,14 @@ class LoadAndSplit(ConfigState.State):
                 self.update(state=op_state.ERROR)
             return df
         else:
-            self.app.log("For NumPy files, the format of target value should be mentioned through `target_value` "
+            self.log("For NumPy files, the format of target value should be mentioned through `target_value` "
                          "key in config file", LogLevel.ERROR)
             self.update(state=op_state.ERROR)
 
     def create_splits(self, data):
         splits = []
         if self.config['stratify'] and (self.config['local_dataset']['target_value'] is not None):
-            self.app.log(f'Use stratified kfold cv for label column', LogLevel.DEBUG)
+            self.log(f'Use stratified kfold cv for label column', LogLevel.DEBUG)
             cv = StratifiedKFold(n_splits=self.config['n_splits'], shuffle=self.config['shuffle'],
                                  random_state=self.config['random_state'])
             y = data.loc[:, self.config['local_dataset']['target_value']]
@@ -86,7 +88,7 @@ class LoadAndSplit(ConfigState.State):
                 test_df = pd.DataFrame(data.iloc[test_indices], columns=data.columns)
                 splits.append([train_df, test_df])
         else:
-            self.app.log(f'Use kfold cv', LogLevel.DEBUG)
+            self.log(f'Use kfold cv', LogLevel.DEBUG)
             cv = KFold(n_splits=self.config['n_splits'], shuffle=self.config['shuffle'],
                        random_state=self.config['random_state'])
             for train_indices, test_indices in cv.split(data):
@@ -102,22 +104,22 @@ class WriteResults(AppState):
         self.register_transition('terminal', Role.BOTH)
 
     def run(self) -> str or None:
-        files = zip(self.app.internal['splits'],
-                    self.app.internal['output_files']['train'],
-                    self.app.internal['output_files']['test'])
+        files = zip(self.load('splits'),
+                    self.load('output_files')['train'],
+                    self.load('output_files')['test'])
         print(files)
-        csv_writer = lambda filename, df: df.to_csv(filename, sep=self.app.internal['sep'], index=False)
+        csv_writer = lambda filename, df: df.to_csv(filename, sep=self.load('sep'), index=False)
         np_lambda = lambda filename, df: save_numpy(filename,
                                                     df.iloc[:, 0].to_numpy(),
                                                     df.iloc[:, 1].to_numpy(),
-                                                    self.app.internal['target'])
+                                                    self.load('target'))
         save = {"npy": np_lambda, "npz": np_lambda, "csv": csv_writer, "txt": csv_writer}
         progress = 0.5
-        step = 0.4 / len(self.app.internal['splits'])
+        step = 0.4 / len(self.load('splits'))
         for [train_split, test_split], train_filename, test_filename in files:
             print(train_filename, test_filename)
-            save[self.app.internal['format']](train_filename, train_split)
-            save[self.app.internal['format']](test_filename, test_split)
+            save[self.load('format')](train_filename, train_split)
+            save[self.load('format')](test_filename, test_split)
             progress += step
             self.update(progress=progress)
         self.update(progress=1.0)
