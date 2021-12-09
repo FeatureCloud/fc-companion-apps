@@ -1,10 +1,11 @@
+
 # FeatureCloud Companion apps
 
 ### Preprocessing and example apps in FeatureCloud platform
-Among three major app categories in FeatureCloud, this repository is focused on providing apps for preprocessing purposes.
+Among three major app categories in [FeatureCloud](https://github.com/FeatureCloud/app-template), this repository is focused on providing apps for preprocessing purposes.
 These apps can be used in a workflow as a companion for one or a few analysis or learning apps. Meanwhile, this repository can be regarded as a good set of example apps in the FeatureCloud platform, which freshly started developers can refer to for learning 
 how to implement apps using FeatureCloud library. 
-
+ 
 ## Easy App development using FeatureCloud
 In this repository, we implemented multiple apps in different packages. Each package includes an `app.py` which contains
 all the states. Also, each app package includes a `requirements.txt` and `config.yml` file, which are essential to build the
@@ -28,12 +29,12 @@ support different delimiters.
 All the apps support NumPy files, both compressed and uncompressed ones.
 
 Once users begin to experiment with the FeatureCloud platform, they may want to use dummy data at first to familiarize themselves with 
-the platform and libraries. One option would be to employ [Data Distributor](/DataDistributor/README.md) as the first app
+the platform and libraries. One option would be to employ [Data Distributor](https://github.com/FeatureCloud/fc-data-distributor) as the first app
 in a workflow to distribute centralized data among clients. Once the data and config files are ready in clients, one can use     
-[Cross Validation](/CrossValidation/README.md) app to split the local dataset into multiple splits where each split includes a train and test set.
+[Cross Validation](https://github.com/FeatureCloud/fc-cross-validation/tree/Numpy) app to split the local dataset into multiple splits where each split includes a train and test set.
 Cross-validation is a common practice to make sure that the results of the learning app are not accidental. Some applications use images 
-as input to be stored in different datasets. In such cases, the [Image Loader](/ImageLoader/README.md) app can load and store all the
-images in a Numpy file. After loading images, users can employ [Image Normalization](/ImageNormalization/README.md) app to normalize local datasets across 
+as input to be stored in different datasets. In such cases, the [Image Loader](https://github.com/FeatureCloud/fc-image-loader) app can load and store all the
+images in a Numpy file. After loading images, users can employ [Image Normalization](https://github.com/FeatureCloud/fc-image-normalization) app to normalize local datasets across 
 image channels. Overall, there can be different workflows to use companion apps.
 For instance :
 
