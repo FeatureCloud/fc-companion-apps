@@ -15,7 +15,7 @@ from FeatureCloud.engine.app import app_state, AppState, Role, SMPCOperation
 from utils import log_data, log_send_data, JsonSerializer
 import pandas as pd
 import numpy as np
-from ..FeatureCloudCustomStates import ConfigState
+from CustomStates import ConfigState
 
 js_serializer = JsonSerializer()
 
@@ -33,10 +33,10 @@ class LocalMean(ConfigState.State):
         self.lazy_init()
         self.read_config()
         self.finalize_config()
-        self.app.internal['config'] = self.config
+        self.store('config', self.config)
         local_mean = []
         dfs = []
-        for file_name in self.app.internal['input_files']['data']:
+        for file_name in self.load('input_files')['data']:
             dfs.append(pd.read_csv(file_name))
         for df in dfs:
             if self.config['axis'] is None:
@@ -44,18 +44,18 @@ class LocalMean(ConfigState.State):
             elif self.config['axis'] == 0:
                 local_mean.append(df.mean())
             elif self.config['axis'] == 1:
-                local_mean.append([df.mean(), int(self.app.coordinator) * 2 + 100])
+                local_mean.append([df.mean(), int(self.is_coordinator) * 2 + 100])
 
         # By default SMPC will not be used, unless end-user asks for it!
-        self.app.internal['smpc_used'] = self.config.get('use_smpc', False)
-        if self.app.internal['smpc_used']:
+        self.store('smpc_used', self.config.get('use_smpc', False))
+        if self.load('smpc_used'):
             local_mean = js_serializer.prepare(local_mean)
         self.send_data_to_coordinator(data=local_mean,
-                                      use_smpc=self.app.internal['smpc_used'])
-        log_send_data(local_mean, self.app.log)
+                                      use_smpc=self.load('smpc_used'))
+        log_send_data(local_mean, self.log)
 
         self.update(progress=0.1)
-        if self.app.coordinator:
+        if self.is_coordinator:
             return 'GlobalMean'
         return 'WriteResults'
 
@@ -68,16 +68,16 @@ class GlobalMean(AppState):
 
     def run(self) -> str or None:
         global_mean = []
-        aggregated_data = self.aggregate_data(operation=SMPCOperation.ADD, use_smpc=self.app.internal['smpc_used'])
-        log_data(aggregated_data, self.app.log)
+        aggregated_data = self.aggregate_data(operation=SMPCOperation.ADD, use_smpc=self.load('smpc_used'))
+        log_data(aggregated_data, self.log)
         for split_data in aggregated_data:
-            if self.app.internal['config']['axis'] == 1:
+            if self.load('config')['axis'] == 1:
                 global_mean.append(np.array(split_data[0]) / split_data[1])
             else:
-                global_mean.append(np.array(split_data) / len(self.app.clients))
-            self.app.internal['smpc_used'] = False
+                global_mean.append(np.array(split_data) / len(self.clients))
+            self.store('smpc_used', False)
         self.broadcast_data(data=global_mean)
-        log_send_data(global_mean, self.app.log)
+        log_send_data(global_mean, self.log)
         return 'WriteResults'
 
 
@@ -89,8 +89,8 @@ class WriteResults(AppState):
 
     def run(self) -> str or None:
         aggregated_data = self.await_data(n=1, unwrap=True, is_json=False)
-        log_data(aggregated_data, self.app.log)
-        for filename, split_data in zip(self.app.internal['output_files']['mean'], aggregated_data):
+        log_data(aggregated_data, self.log)
+        for filename, split_data in zip(self.load('output_files')['mean'], aggregated_data):
             f = open(filename, "w")
             f.write(str(split_data))
             f.close()
