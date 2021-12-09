@@ -18,7 +18,7 @@ import numpy as np
 import os
 from PIL import Image
 import glob
-from ..FeatureCloudCustomStates import ConfigState
+from CustomStates import ConfigState
 
 name = 'image_loader'
 
@@ -33,15 +33,15 @@ class ImgLoader(ConfigState.State):
         self.lazy_init()
         self.read_config()
         self.finalize_config()
-        samples, self.app.internal['labels'] = \
-            self.load_images(ds_dir=f"{self.input_dir}/{self.config['local_dataset']['ds_dir']}")
+        samples, labels = self.load_images(ds_dir=f"{self.input_dir}/{self.config['local_dataset']['ds_dir']}")
+        self.store('labels', labels)
         self.update(progress=0.3)
-        self.app.internal['samples'] = self.image_preprocess(samples)
+        self.store('samples', self.image_preprocess(samples))
         self.update(progress=0.8)
         return 'WriteResults'
 
     def load_images(self, ds_dir):
-        self.app.log(f"Reading {ds_dir}", LogLevel.DEBUG)
+        self.log(f"Reading {ds_dir}", LogLevel.DEBUG)
         self.update(progress=0.1)
         samples = []
         labels = []
@@ -55,7 +55,7 @@ class ImgLoader(ConfigState.State):
                     df = pd.read_csv(labels_file, sep=self.config['local_dataset']['sep'])
                 else:
                     self.update(state=op_state.ERROR)
-                    self.app.log(f"No {self.config['local_dataset']['target_value']} file found in {labels_file}!",
+                    self.log(f"No {self.config['local_dataset']['target_value']} file found in {labels_file}!",
                                  LogLevel.FATAL)
                 for format in self.config['local_dataset']['image_format']:
                     for filename in glob.glob(f'{ds_dir}/{folder}/*.{format}'):  # assuming gif
@@ -100,8 +100,8 @@ class WriteResults(AppState):
 
     def run(self) -> str or None:
         samples = []
-        for sample in self.app.internal['samples']:
+        for sample in self.load('samples'):
             samples.append(np.asarray(sample))
-        np.save(self.app.internal['output_files']['data'][0], [samples, self.app.internal['labels']])
+        np.save(self.load('output_files')['data'][0], [samples, self.load('labels')])
         self.update(progress=0.99)
         return 'terminal'
