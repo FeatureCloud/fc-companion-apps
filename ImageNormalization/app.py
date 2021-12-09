@@ -18,7 +18,7 @@ from FeatureCloud.engine.app import State as op_state
 import numpy as np
 from utils import save_numpy
 from .utils import read_file
-from ..FeatureCloudCustomStates import ConfigState
+from CustomStates import ConfigState
 
 name = 'image_normalization'
 
@@ -35,47 +35,49 @@ class LocalStats(ConfigState.State):
         self.read_config()
         self.finalize_config()
         self.update(progress=0.1)
-        self.app.internal['method'] = self.config['method']
-        self.app.internal['target_value'] = self.config['local_dataset']['target_value']
+        self.store('method', self.config['method'])
+        self.store('target_value', self.config['local_dataset']['target_value'])
         stats = self.read_files()
-        self.app.internal['smpc_used'] = self.config.get('use_smpc', False)
-        self.send_data_to_coordinator(data=stats, use_smpc=self.app.internal['smpc_used'])
+        self.store('smpc_used', self.config.get('use_smpc', False))
+        self.send_data_to_coordinator(data=stats, use_smpc=self.load('smpc_used'))
         self.update(progress=0.3)
-        if self.app.coordinator:
+        if self.is_coordinator:
             return 'GlobalStats'
         return 'WriteResults'
 
     def read_files(self):
-        local_stats = []
-        self.app.internal['x_train'], self.app.internal['y_train'] = [], []
-        self.app.internal['x_test'], self.app.internal['y_test'] = [], []
-        splits = zip(self.app.internal['input_files']['train'], self.app.internal['input_files']['test'])
+        x_train, y_train, x_test, y_test, local_stats = [], [], [], [], []
+        splits = zip(self.load('input_files')['train'], self.load('input_files')['test'])
         for split_train_file, split_test_file in splits:
             if not os.path.isfile(split_train_file):
-                self.app.log(f"File not found:\n{split_train_file}", LogLevel.ERROR)
+                self.log(f"File not found:\n{split_train_file}", LogLevel.ERROR)
                 self.update(state=op_state.ERROR)
-            x_train, y_train, mean_train, std_train = read_file(split_train_file,
+            x, y, mean_train, std_train = read_file(split_train_file,
                                                                 self.config['local_dataset']['target_value'])
-            n_train_samples = len(x_train)
+            n_train_samples = len(x)
             mean_train *= n_train_samples
             std_train *= n_train_samples
-            self.app.internal['x_train'].append(x_train)
-            self.app.internal['y_train'].append(y_train)
+            x_train.append(x)
+            y_train.append(y)
             if not os.path.isfile(split_test_file):
-                self.app.log(f"File not found:\n{split_test_file}"
+                self.log(f"File not found:\n{split_test_file}"
                              f"\nNo test set is provided!", LogLevel.DEBUG)
                 mean_test, std_test = copy.deepcopy(mean_train), copy.deepcopy(std_train)
-                x_test, y_test = [], []
+                x, y = [], []
             else:
-                x_test, y_test, mean_test, std_test = read_file(split_test_file)
-            n_test_samples = len(x_test)
+                x, y, mean_test, std_test = read_file(split_test_file)
+            n_test_samples = len(x)
             mean_test *= n_test_samples
             std_test *= n_test_samples
 
-            self.app.internal['x_test'].append(x_test)
-            self.app.internal['y_test'].append(y_test)
+            x_test.append(x)
+            y_test.append(y)
             local_stats.append([[n_train_samples, mean_train.tolist(), std_train.tolist()],
                                 [n_test_samples, mean_test.tolist(), std_test.tolist()]])
+        self.store('x_train', x_train)
+        self.store('x_test', x_test)
+        self.store('y_train', y_train)
+        self.store('y_test', y_test)
         return local_stats
 
 
@@ -85,11 +87,11 @@ class GlobalStats(AppState):
         self.register_transition('WriteResults', Role.COORDINATOR)
 
     def run(self):
-        aggregated_stats = self.aggregate_data(operation=SMPCOperation.ADD, use_smpc=self.app.internal['smpc_used'])
+        aggregated_stats = self.aggregate_data(operation=SMPCOperation.ADD, use_smpc=self.load('smpc_used'))
         print(aggregated_stats)
         self.update(progress=0.4)
         global_stats = []
-        if self.app.internal['method'] == "variance":
+        if self.load('method') == "variance":
             for train_split, test_split in aggregated_stats:
                 n_train_samples, train_mean, train_std = train_split
                 n_test_samples, test_mean, test_std = test_split
@@ -108,7 +110,7 @@ class GlobalStats(AppState):
                 global_stats.append([train_mean, train_std, test_mean, test_std])
             self.broadcast_data(data=global_stats)
         else:
-            self.app.log(f"{self.app.internal['method']} was not implemented as a normalization method.",
+            self.log(f"{self.load('method')} was not implemented as a normalization method.",
                          LogLevel.ERROR)
             self.update(state=op_state.ERROR)
         self.update(progress=0.5)
@@ -126,7 +128,7 @@ class WriteResults(AppState):
         step = 0.5 / len(global_stats)
         for i, split_stats in enumerate(global_stats):
             x_train, x_test = \
-                self.local_normalization(self.app.internal['x_train'][i], self.app.internal['x_test'][i], split_stats)
+                self.local_normalization(self.load('x_train')[i], self.load('x_test')[i], split_stats)
             self.write_results(x_train, x_test, i)
             progress += step
             self.update(progress=progress)
@@ -134,7 +136,7 @@ class WriteResults(AppState):
         return 'terminal'
 
     def local_normalization(self, x_train, x_test, global_stats):
-        if self.app.internal['method'] == "variance":
+        if self.load('method') == "variance":
             normalized_x_train = np.subtract(x_train, global_stats[0]) / global_stats[1]
             if np.size(x_test) != 0:
                 normalized_x_test = np.subtract(x_test, global_stats[2]) / global_stats[3]
@@ -142,16 +144,18 @@ class WriteResults(AppState):
                 normalized_x_test = np.array([])
             return normalized_x_train.tolist(), normalized_x_test.tolist()
 
-        self.app.log(f"{self.conmethod} was not implemented as a normalization method.", LogLevel.ERROR)
+        self.log(f"{self.conmethod} was not implemented as a normalization method.", LogLevel.ERROR)
         self.update(state=op_state.ACTION)
 
     def write_results(self, x_train, x_test, i):
-        save_numpy(file_name=self.app.internal['output_files']['train'][i],
+        save_numpy(file_name=self.load('output_files')['train'][i],
                    features=x_train,
-                   labels=self.app.internal['y_train'][i],
-                   target=self.app.internal['target_value'])
+                   labels=self.load('y_train')[i],
+                   target=self.load('target_value'),
+                   )
         if np.size(x_test) != 0:
-            save_numpy(file_name=self.app.internal['output_files']['test'][i],
+            save_numpy(file_name=self.load('output_files')['test'][i],
                        features=x_test,
-                       labels=self.app.internal['y_test'][i],
-                       target=self.app.internal['target_value'])
+                       labels=self.load('y_test')[i],
+                       target=self.load('target_value')
+                       )
