@@ -57,10 +57,10 @@ class State(AppState):
             `output_files`: paths to all output files regarding the data splits.
             
         """
-        self.app.internal['smpc_used'] = False
-        self.app.internal['splits'] = set()
-        self.app.internal['input_files'] = {}
-        self.app.internal['output_files'] = {}
+        self.store('smpc_used', False)
+        self.store('splits', set())
+        self.store('input_files', {})
+        self.store('output_files', {})
 
     def read_config(self):
         """ Read config.yml file
@@ -70,18 +70,19 @@ class State(AppState):
         self.config = bios.read(self.config_file)[self.app_name]
         if 'debug' in self.config:
             if self.config['debug']:
-                self.app.internal['debug'] = True
-                self.app.log("Debug mode is ON", LogLevel.DEBUG)
+                self.store('debug', True)
+                self.log("Debug mode is ON", LogLevel.DEBUG)
             else:
-                self.app.internal['debug'] = False
+                self.store('debug', False)
+
         if 'logic' in self.config:
             self.mode = self.config['logic']['mode']
             self.dir = self.config['logic']['dir']
         else:
-            self.app.log(f"There are no 'logic' options in 'config.yml' file!\n"
-                         f"default values will be used:\n"
-                         f"mod: 'file'\n"
-                         f"dir: '.'", LogLevel.DEBUG)
+            self.log(f"There are no 'logic' options in 'config.yml' file!\n"
+                     f"default values will be used:\n"
+                     f"mod: 'file'\n"
+                     f"dir: '.'", LogLevel.DEBUG)
 
     def finalize_config(self):
         """  Generates split names, paths to input and output files.
@@ -92,17 +93,15 @@ class State(AppState):
             splits = [f.path for f in os.scandir(f'{self.input_dir}/{self.dir}') if f.is_dir()]
         else:
             splits = [self.input_dir, ]
-        self.app.internal['splits'] = set(sorted(splits))
-        self.app.log(f" Splits order:")
-        for i, split in enumerate(self.app.internal['splits']):
-            self.app.log(f"Split {i}: {split}")
-        self.app.internal['input_files'] = \
-            {k: [f"{split}/{v}" for split in self.app.internal['splits']]
-             for k, v in self.config['local_dataset'].items()}
-        self.app.internal['output_files'] = \
-            {k: [f"{split.replace('/input', '/output')}/{v}" for split in self.app.internal['splits']]
-             for k, v in self.config['result'].items()}
-
-        for split in self.app.internal['splits']:
+        self.store('splits', set(sorted(splits)))
+        self.log(f" Splits order:")
+        for i, split in enumerate(self.load('splits')):
+            self.log(f"Split {i}: {split}")
+        self.store('input_files', {k: [f"{split}/{v}" for split in self.load('splits')]
+                                   for k, v in self.config['local_dataset'].items()})
+        self.store('output_files', {k: [f"{split.replace('/input', '/output')}/{v}"
+                                        for split in self.load('splits')]
+                                    for k, v in self.config['result'].items()})
+        for split in self.load('splits'):
             os.makedirs(split.replace("/input", "/output"), exist_ok=True)
         shutil.copyfile(self.input_dir + '/config.yml', self.output_dir + '/config.yml')
