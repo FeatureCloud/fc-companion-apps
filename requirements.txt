@@ -1,3 +1,4 @@
+FeatureCloud==0.0.4
 bottle
 jsonpickle
 joblib
@@ -10,4 +11,3 @@ sklearn
 matplotlib
 seaborn
 Pillow
-FeatureCloud
