@@ -1,5 +1,6 @@
 
-# FeatureCloud Companion apps
+# FeatureCloud Companion apps <img src="data/images/fc_logo_small.svg" width="50" height="50"/>
+
 
 ### Preprocessing and example apps in FeatureCloud platform
 Among three major app categories in [FeatureCloud](https://github.com/FeatureCloud/app-template), this repository is focused on providing apps for preprocessing purposes.
