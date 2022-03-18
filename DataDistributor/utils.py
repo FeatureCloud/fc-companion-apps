@@ -75,8 +75,8 @@ def noniid_sampling(df, clients, noniid):
     clients: list
         ID of clients that data should be distributed among them
     noniid: int
-        number of clients that have access to samples of an specific class labels.
-        In other words, it indicates samples of each class can be found in how many different clients.
+        number of clients that have access to samples of a specific class labels.
+        In other words, it indicates samples of each class can be found in how many clients.
 
     Returns
     -------

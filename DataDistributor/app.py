@@ -12,8 +12,8 @@
     limitations under the License.
 """
 
-from FeatureCloud.engine.app import app_state, AppState, Role, LogLevel
-from FeatureCloud.engine.app import State as op_state
+from FeatureCloud.app.engine.app import app_state, AppState, Role, LogLevel
+from FeatureCloud.app.engine.app import State as op_state
 import pandas as pd
 import bios
 from utils import save_numpy, load_numpy, sep_feat_from_label, log_send_data, log_data

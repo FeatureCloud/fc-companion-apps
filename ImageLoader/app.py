@@ -11,8 +11,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-from FeatureCloud.engine.app import app_state, AppState, Role, LogLevel
-from FeatureCloud.engine.app import State as op_state
+from FeatureCloud.app.engine.app import app_state, AppState, Role, LogLevel
+from FeatureCloud.app.engine.app import State as op_state
 import pandas as pd
 import numpy as np
 import os

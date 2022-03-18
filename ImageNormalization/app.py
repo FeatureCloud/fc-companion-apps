@@ -13,8 +13,8 @@
 """
 import copy
 import os.path
-from FeatureCloud.engine.app import app_state, AppState, Role, LogLevel, SMPCOperation
-from FeatureCloud.engine.app import State as op_state
+from FeatureCloud.app.engine.app import app_state, AppState, Role, LogLevel, SMPCOperation
+from FeatureCloud.app.engine.app import State as op_state
 import numpy as np
 from utils import save_numpy
 from .utils import read_file

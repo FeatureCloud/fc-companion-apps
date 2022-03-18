@@ -12,8 +12,8 @@
     limitations under the License.
 """
 from CustomStates import ConfigState
-from FeatureCloud.engine.app import app_state, Role, AppState, LogLevel
-from FeatureCloud.engine.app import State as op_state
+from FeatureCloud.app.engine.app import app_state, Role, AppState, LogLevel
+from FeatureCloud.app.engine.app import State as op_state
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold, KFold
 import os

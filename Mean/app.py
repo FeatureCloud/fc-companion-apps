@@ -11,7 +11,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-from FeatureCloud.engine.app import app_state, AppState, Role, SMPCOperation
+from FeatureCloud.app.engine.app import app_state, AppState, Role, SMPCOperation
 from utils import log_data, log_send_data, JsonSerializer
 import pandas as pd
 import numpy as np
@@ -46,7 +46,7 @@ class LocalMean(ConfigState.State):
             elif self.config['axis'] == 1:
                 local_mean.append([df.mean(), int(self.is_coordinator) * 2 + 100])
 
-        # By default SMPC will not be used, unless end-user asks for it!
+        # By default, SMPC will not be used, unless end-user asks for it!
         self.store('smpc_used', self.config.get('use_smpc', False))
         if self.load('smpc_used'):
             local_mean = js_serializer.prepare(local_mean)
